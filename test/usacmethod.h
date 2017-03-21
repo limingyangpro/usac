@@ -8,10 +8,11 @@
 #ifndef USACLIB_USACMETHOD_H_
 #define USACLIB_USACMETHOD_H_
 
-#include "../basiclib/basictype.h"
 #include "ConfigParamsHomog.h"
 #include "HomogEstimator.h"
 #include "USAC.h"
+#include "opencv2/opencv.hpp"
+using namespace std;
 
 namespace usac
 {
@@ -26,8 +27,8 @@ struct Corresp
 class USACmethod
 {
 private:
-	PtArray refpts;
-	PtArray imgpts;
+	vector<cv::Point2f> refpts;
+	vector<cv::Point2f> imgpts;
 	float eta, jitter;
 	int distThreshold;
 	const vector< int >* correspondancedist;  /**< refID*imgnum + imgID: quality of correspondence, from "color distance", the smaller the better */
@@ -53,23 +54,27 @@ public:
 	/**
 	 * Set reference point sets and renew the hashtables
 	 */
-	void setRefPoints(PtArray const *ptsource);
+	void setRefPoints(vector<cv::Point2f> const *ptsource);
 
 	/**
 	 * Set reference point sets
 	 */
-	bool setImgPoints(PtArray const *ptsource);
+	bool setImgPoints(vector<cv::Point2f> const *ptsource);
 
 	/**
 	 * Matching with depth-first-search
 	 */
-	cv::Mat_<float> setImgPointsAndMatch(vector<RDM_Point> const *ptsource, const vector< int >* correspdist, vector<pair<int, pair<RDM_Point,RDM_Point> > > *corresp);
+	cv::Mat_<float> setImgPointsAndMatch(vector<cv::Point2f> const *ptsource, const vector< int >* correspdist, vector<pair<int, pair<cv::Point2f,cv::Point2f> > > *corresp);
 
 	/**
 	 * Matching
 	 */
-	cv::Mat_<float> Match(vector<pair<int, pair<RDM_Point,RDM_Point> > > *corresp);
+	cv::Mat_<float> Match(vector<pair<int, pair<cv::Point2f,cv::Point2f> > > *corresp);
 
+	/**
+	 * New method for match
+	 */
+	vector<unsigned int> Match(const vector<cv::Point2f> &ref, const vector<cv::Point2f> &img, const vector< vector<int> > &inputCorrespondences);
 };
 
 }

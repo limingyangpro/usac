@@ -1,4 +1,4 @@
-#include "ConfigParamsHomog.h"
+#include "../include/ConfigParamsHomog.h"
 
 namespace usac
 {

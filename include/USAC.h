@@ -9,6 +9,22 @@
 #include <vector>
 #include <cmath>
 #include "ConfigParams.h"
+ #include <sys/time.h>
+
+class RandomSeedGenerator
+{
+public:
+static inline unsigned int generateSeed()
+{
+	struct timeval tp;
+	gettimeofday(&tp, NULL);
+	unsigned long long millisecondsSinceEpoch =
+		    (unsigned long long)(tp.tv_sec) * 1000 +
+		    (unsigned long long)(tp.tv_usec) / 1000;
+
+	return (unsigned int)millisecondsSinceEpoch;
+}
+};
 
 namespace usac{
 

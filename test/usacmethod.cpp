@@ -6,6 +6,7 @@
  */
 
 #include "usacmethod.h"
+#include <map>
 
 namespace usac
 {
@@ -13,7 +14,7 @@ void USACmethod::setJitter()
 {
 	int num,i;
 	float refarea;                   //minimum rectangle englobe all the referece points
-	RDM_Point minp,maxp;             //minimum rectangle englobe all the referece points
+	cv::Point2f minp,maxp;             //minimum rectangle englobe all the referece points
 	num = refpts.size();
 
 	//Find bounding area
@@ -144,7 +145,7 @@ bool USACmethod::setCorrespondenceDist(const vector< int >* correspdist)
 	}
 }
 
-void USACmethod::setRefPoints(PtArray const *ptsource)
+void USACmethod::setRefPoints(vector<cv::Point2f> const *ptsource)
 {
 	refpts = *ptsource;
 	setJitter();
@@ -153,7 +154,7 @@ void USACmethod::setRefPoints(PtArray const *ptsource)
 /**
  * Set reference point sets
  */
-bool USACmethod::setImgPoints(PtArray const *ptsource)
+bool USACmethod::setImgPoints(vector<cv::Point2f> const *ptsource)
 {
 	//Simple copy make core dump, why ?
 	imgpts.resize(ptsource->size());
@@ -164,7 +165,7 @@ bool USACmethod::setImgPoints(PtArray const *ptsource)
 	return true;
 }
 
-cv::Mat_<float> USACmethod::Match(vector<pair<int, pair<RDM_Point,RDM_Point> > > *corresp)
+cv::Mat_<float> USACmethod::Match(vector<pair<int, pair<cv::Point2f,cv::Point2f> > > *corresp)
 {
 	cv::Mat_<float> homo = cv::Mat::eye(3,3,CV_32F);
 	// set up the homography estimation problem
@@ -196,7 +197,7 @@ cv::Mat_<float> USACmethod::Match(vector<pair<int, pair<RDM_Point,RDM_Point> > >
 	return homo;
 }
 
-cv::Mat_<float> USACmethod::setImgPointsAndMatch(vector<RDM_Point> const *ptsource, const vector< int >* correspdist, vector<pair<int, pair<RDM_Point,RDM_Point> > > *corresp)
+cv::Mat_<float> USACmethod::setImgPointsAndMatch(vector<cv::Point2f> const *ptsource, const vector< int >* correspdist, vector<pair<int, pair<cv::Point2f,cv::Point2f> > > *corresp)
 {
 	if (setImgPoints(ptsource))
 	{
@@ -210,5 +211,181 @@ cv::Mat_<float> USACmethod::setImgPointsAndMatch(vector<RDM_Point> const *ptsour
 	return emptymat;
 }
 
+
+vector<unsigned int> USACmethod::Match(const vector<cv::Point2f> &ref, const vector<cv::Point2f> &img, const vector< vector<int> > &inputCorrespondences)
+{
+
+	//Uniform sampling
+	int maxCorresNum = inputCorrespondences.size();
+	pointData.reserve(maxCorresNum);
+
+	for (size_t i = 0 ; i < maxCorresNum ; i++)
+	{
+		pointData.push_back(ref[ inputCorrespondences[i][0] ].x);
+		pointData.push_back(ref[ inputCorrespondences[i][0] ].y);
+		pointData.push_back(1.0);
+		pointData.push_back(img[ inputCorrespondences[i][1] ].x);
+		pointData.push_back(img[ inputCorrespondences[i][1] ].y);
+		pointData.push_back(1.0);
+	}
+
+	jitter = 4;
+//	cfg.common.minSampleSize = 4;
+//	cfg.common.maxSolutionsPerSample = 1;
+//	cfg.common.maxHypotheses = 100000;
+	cfg.common.randomSamplingMethod = USACConfig::SAMP_UNIFORM;
+	cfg.common.inlierThreshold = 2*sqrt(2)*jitter;   //2*sqrt(2)*sigma, for symetric error
+	cfg.common.prevalidateSample = true;
+	cfg.common.prevalidateModel = true;
+	cfg.common.testDegeneracy = true;
+
+	cfg.common.localOptMethod = USACConfig::LO_LOSAC;
+
+	homog = new HomogEstimator;
+	homog->initParamsUSAC(cfg);
+
+	cfg.common.numDataPoints = maxCorresNum;
+
+
+	/**
+	 * Start to solve!
+	 */
+	homog->initDataUSAC(cfg);
+	homog->initProblem(cfg, &pointData[0]);
+	if (!homog->solve())
+	{
+		return vector<unsigned int>();     //no homo found
+	}
+
+	if (homog->usac_results_.best_inlier_count_ <= 8)
+	{
+		cv::Mat_<float> emptymat(3,3);
+		emptymat.release();
+		return vector<unsigned int>();     //no homo found
+	}
+
+	return homog->usac_results_.inlier_flags_;
+}
+
+
+}
+
+/**
+ * Read point set coordinate from specified file
+ */
+template <typename PointType>
+bool readCoordinateFromFile(string filename, vector<PointType> &pointarray)
+{
+	ifstream file(filename.c_str());
+	if (!file.is_open())         //Check if the corresponding file exists
+	{cv::Mat_<float> Match(vector<pair<int, pair<cv::Point2f,cv::Point2f> > > *corresp);
+		cout<<"Fail to open file "<< filename << endl;
+		return false;
+	}
+	// Deal with all the coordinates
+
+	int totalpoints;
+	PointType tmppoint;
+	pointarray.clear();
+
+	file >> totalpoints;
+
+	for(int i=0;i<totalpoints;i++)
+	{
+		file >> tmppoint.x >> tmppoint.y;
+		pointarray.push_back(tmppoint);
+	}
+
+	file.close();
+
+	return true;
+}
+
+/**
+ * Read expected result from specified file, the result is recorded in a map
+ * resultmap[refID] = imgID;
+ */
+bool readResultFromFile(string filename, map<int,int> &resultmap)
+{
+	ifstream file(filename.c_str());
+	if (!file.is_open())         //Check if the corresponding file exists
+	{
+		cout<<"Fail to open file "<< filename << endl;
+		return false;
+	}
+	// Deal with all the coordinates
+
+	int recordnum, refID, imgID;
+
+	file >> recordnum;
+
+	resultmap.clear();
+	for(int i=0;i<recordnum;i++)
+	{
+		file >> refID >> imgID;
+		resultmap[refID] = imgID;
+	}
+
+	file.close();
+
+	return true;
+}
+
+
+int main()
+{
+	vector<cv::Point2f> refPts, imgPts;
+	map<int,int> groundTruth;
+
+	readCoordinateFromFile("/home/liming/workspace/usac/test/data/grafitti1and2.ref", refPts);
+	readCoordinateFromFile("/home/liming/workspace/usac/test/data/grafitti1and2.img", imgPts);
+	readResultFromFile("/home/liming/workspace/usac/test/data/grafitti1and2.res", groundTruth);
+
+	/**
+	 * Matrix recording the existing correspondences
+	 */
+	vector< vector<bool> > isFilled(refPts.size());
+	for (size_t i = 0 ; i < isFilled.size() ; i++)
+	{
+		isFilled[i].assign(imgPts.size() , false);
+	}
+
+	/**
+	 * Input data (refPt.x refPt.y imgPt.x imgPt.y quality)
+	 */
+	vector< vector<int> > inputData (0);
+	for (map<int,int>::iterator it = groundTruth.begin() ; it != groundTruth.end() ; ++it)
+	{
+		isFilled[it->first][it->second] = true;
+		vector<int> onedata = {it->first, it->second, 1};
+		inputData.push_back(onedata);
+	}
+
+
+	/**
+	 * Then add noise from random data
+	 */
+//	for (int i = 0 ; i < 2*groundTruth.size() ; i++)
+//	{
+//		int refID = int (rand() % refPts.size());
+//		int imgID = int (rand() % imgPts.size());
+//		if (!isFilled[refID][imgID])
+//		{
+//			isFilled[refID][imgID] = true;
+//			vector<int> onedata = {refID, imgID, 1};
+//			inputData.push_back(onedata);
+//		}
+//	}
+
+	usac::USACmethod usacalgo(0.05, 1);
+
+	vector<unsigned int> result = usacalgo.Match(refPts, imgPts, inputData);
+
+	for (int i = 0 ; i < result.size() ; i++)
+	{
+		cout<<result[i]<<endl;
+	}
+
+	return 0;
 
 }
