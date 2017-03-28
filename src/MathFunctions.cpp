@@ -4,6 +4,51 @@
 
 namespace MathTools
 {
+	//For only one point set, fitting circles for example
+	void normalizePoints(double* inputPointsUnNorm, double* inputPoints, unsigned int numPoints, double* T)
+	{
+//		memset(T, 0, sizeof(double)*9);
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			for (unsigned int j = 0; j < 3; ++j)
+			{
+				T[3*i+j] = 0;
+			}
+		}
+
+		// compute mean
+		double mean1[2] = {0.0};
+		for (unsigned int i = 0; i < numPoints; ++i)
+		{
+			mean1[0] += inputPointsUnNorm[3*i];   mean1[1] += inputPointsUnNorm[3*i+1];
+		}
+		mean1[0] /= (double)numPoints;
+		mean1[1] /= (double)numPoints;
+
+		// compute mean distance from center
+		double meandist1(0);
+		for (unsigned int i = 0; i < numPoints; ++i)
+		{
+			meandist1 += sqrt( (inputPointsUnNorm[3*i]   - mean1[0]) * (inputPointsUnNorm[3*i]   - mean1[0]) +
+							   (inputPointsUnNorm[3*i+1] - mean1[1]) * (inputPointsUnNorm[3*i+1] - mean1[1]) );
+		}
+		meandist1 /= (double)numPoints;
+		double scale1 = sqrt(2.0)/meandist1;
+
+		// form normalization matrices
+		T[0] = scale1;
+		T[2] = -scale1*mean1[0];
+		T[4] = scale1;
+		T[5] = -scale1*mean1[1];
+		T[8] = 1.0;
+
+		// form array of normazlied data points
+		for (unsigned int i = 0; i < numPoints; ++i)
+		{
+			MathTools::vmul( (inputPoints+3*i), T, (inputPointsUnNorm + 3*i), 3);
+		}
+	}
+
 	//new added
 	void normalizePoints(double* inputPointsUnNorm, double* inputPoints, unsigned int numPoints,
 						 double* T1, double* T2)

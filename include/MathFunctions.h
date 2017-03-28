@@ -23,6 +23,8 @@ namespace MathTools
 
 	//NEW ADDED
 	void normalizePoints(double* inputPointsUnNorm, double* inputPoints, unsigned int numPoints,
+						 double* T);
+	void normalizePoints(double* inputPointsUnNorm, double* inputPoints, unsigned int numPoints,
 						 double* T1, double* T2);
 	// the below functions are from ccmath 
 	int svdu1v(double *d, double *a, int m, double *v, int n);

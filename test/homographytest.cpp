@@ -213,14 +213,3 @@ bool HomographyTest::verify(string refFilename, string imgFilename, string resFi
 	return (resultMap == groundTruth);
 }
 
-int main()
-{
-	HomographyTest usacalgo(4.0f);
-	bool ok = usacalgo.verify("/home/liming/workspace/usac/test/data/random50.ref",
-			"/home/liming/workspace/usac/test/data/random50.img",
-			"/home/liming/workspace/usac/test/data/random50.res");
-
-	std::cout<<ok<<endl;
-	return 0;
-
-}

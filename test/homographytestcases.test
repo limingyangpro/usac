@@ -1,0 +1,63 @@
+/*
+ * lgh2D_test.cpp
+ *
+ *  Created on: Jul 17, 2015
+ *      Author: liming
+ */
+
+#include <boost/test/included/unit_test.hpp>
+#include "homographytest.h"
+
+/**
+ * NB :
+ * Tests in this file can be launched together --run_test=Special_matching_cases
+ */
+
+string prefix = "/home/liming/workspace/usac/test/data/";
+BOOST_AUTO_TEST_SUITE( homography_tests )
+
+BOOST_AUTO_TEST_CASE( nonoise )
+{
+	HomographyTest usacalgo(4.0f);
+	bool ok = usacalgo.verify(prefix + "nonoise.ref",
+			prefix + "nonoise.img",
+			prefix + "nonoise.res");
+
+	BOOST_CHECK(ok);
+
+}
+
+BOOST_AUTO_TEST_CASE( random50 )
+{
+	HomographyTest usacalgo(4.0f);
+	bool ok = usacalgo.verify(prefix + "random50.ref",
+			prefix + "random50.img",
+			prefix + "random50.res");
+
+	BOOST_CHECK(ok);
+
+}
+
+BOOST_AUTO_TEST_CASE( appartment )
+{
+	HomographyTest usacalgo(4.0f);
+	bool ok = usacalgo.verify(prefix + "appartment.ref",
+			prefix + "appartment.img",
+			prefix + "appartment.res");
+
+	BOOST_CHECK(ok);
+
+}
+
+BOOST_AUTO_TEST_CASE( grafitti1and2 )
+{
+	HomographyTest usacalgo(4.0f);
+	bool ok = usacalgo.verify(prefix + "grafitti1and2.ref",
+			prefix + "grafitti1and2.img",
+			prefix + "grafitti1and2.res");
+
+	BOOST_CHECK(ok);
+
+}
+
+BOOST_AUTO_TEST_SUITE_END()
