@@ -31,7 +31,7 @@ vector<unsigned int> CircleFitTest::fit(const cv::Point2f &fixPt, const vector<c
 //	cfg.common.maxSolutionsPerSample = 1;
 //	cfg.common.maxHypotheses = 100000;
 	cfg.common.randomSamplingMethod = USACConfig::SAMP_PROSAC;
-	cfg.common.inlierThreshold = 2*sqrt(2)*jitter;   //2*sqrt(2)*sigma, for symetric error
+	cfg.common.inlierThreshold = jitter;   //2*sqrt(2)*sigma, for symetric error
 
 	//Optimizer
 	cfg.common.prevalidateSample = true;

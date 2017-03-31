@@ -49,7 +49,7 @@ class CircleEstimator: public USAC<CircleEstimator>
 
 	private:
 		double*      input_points_denorm_;
-		double 	 fix_point_[3];     //The circle should pass this fix point
+		double 	 fix_point_[3], fix_point_denorm_[3];     //The circle should pass this fix point
 		// ------------------------------------------------------------------------
 		// temporary storage
 		double* input_points_;							// stores normalized data points
@@ -68,7 +68,7 @@ class CircleEstimator: public USAC<CircleEstimator>
 bool CircleEstimator::initProblem(const ConfigParamsCircle& cfg, double fixPoint[3], double* pointData)
 {
 	// set up problem specific data here (e.g., data matrices, parameter vectors, etc.)
-	std::memcpy(fix_point_, fixPoint, sizeof(fix_point_));
+	std::memcpy(fix_point_denorm_, fixPoint, sizeof(fix_point_));
 
 	// copy pointer to input data
 	input_points_denorm_ = pointData;
@@ -89,6 +89,8 @@ bool CircleEstimator::initProblem(const ConfigParamsCircle& cfg, double fixPoint
 	// the original input points
 	// output: input_points_
 	MathTools::normalizePoints(input_points_denorm_, input_points_, cfg.common.numDataPoints, m_T_);
+	MathTools::vmul( fix_point_, m_T_, fix_point_denorm_, 3);
+
 
 	for (unsigned int i = 0; i < 9; ++i)
 	{

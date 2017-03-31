@@ -5,8 +5,8 @@
  *      Author: liming
  */
 
-#ifndef USACLIB_USACMETHOD_H_
-#define USACLIB_USACMETHOD_H_
+#ifndef HOMOGRAPHYTEST_H_
+#define HOMOGRAPHYTEST_H_
 
 #include "ConfigParamsHomog.h"
 #include "HomogEstimator.h"
@@ -48,4 +48,4 @@ public:
 
 };
 
-#endif /* USACLIB_USACMETHOD_H_ */
+#endif /* HOMOGRAPHYTEST_H_ */

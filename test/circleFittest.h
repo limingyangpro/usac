@@ -5,8 +5,8 @@
  *      Author: liming
  */
 
-#ifndef USACLIB_USACMETHOD_H_
-#define USACLIB_USACMETHOD_H_
+#ifndef CIRCLE_TEST_H_
+#define CIRCLE_TEST_H_
 
 #include "CircleEstimator.h"
 #include "USAC.h"
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif /* USACLIB_USACMETHOD_H_ */
+#endif /* CIRCLE_TEST_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include <boost/test/included/unit_test.hpp>
+#include "circleFittest.h"
 
 /**
  * NB :
@@ -14,48 +15,42 @@
 
 BOOST_AUTO_TEST_SUITE( circle_tests )
 
-BOOST_AUTO_TEST_CASE( nonoise )
+BOOST_AUTO_TEST_CASE( unitCircle )
 {
-	HomographyTest usacalgo(4.0f);
-	bool ok = usacalgo.verify(prefix + "nonoise.ref",
-			prefix + "nonoise.img",
-			prefix + "nonoise.res");
 
-	BOOST_CHECK(ok);
+	cv::Point2f fixPt(0,0);
+	std::vector<cv::Point2f> pts;
+	std::vector< int > q;
 
-}
+	for (size_t i = 0 ; i < 180 ; i++)
+	{
+		pts.push_back( cv::Point2f(cos(i*3.14/180),sin(i*3.14/180) + 1) );
+		q.push_back(1);
+	}
 
-BOOST_AUTO_TEST_CASE( random50 )
-{
-	HomographyTest usacalgo(4.0f);
-	bool ok = usacalgo.verify(prefix + "random50.ref",
-			prefix + "random50.img",
-			prefix + "random50.res");
+	CircleFitTest cFit(0.1);
 
-	BOOST_CHECK(ok);
+	std::vector<unsigned int> res = cFit.fit(fixPt, pts, q);
 
-}
+	cv::Mat_<uchar> temp(200,200);
+	temp.setTo(0);
+	for (size_t i = 0 ; i < pts.size() ; i++)
+	{
+		cv::circle(temp, cv::Point(100 + pts[i].x * 10,100 + pts[i].y * 10), 2, cv::Scalar(255), 1 );
+		cv::imshow("temp", temp);
+		cv::waitKey(-1);
+	}
 
-BOOST_AUTO_TEST_CASE( appartment )
-{
-	HomographyTest usacalgo(4.0f);
-	bool ok = usacalgo.verify(prefix + "appartment.ref",
-			prefix + "appartment.img",
-			prefix + "appartment.res");
+	cv::circle(temp, cv::Point(100 + fixPt.x * 10,100 + fixPt.y * 10), 2, cv::Scalar(255), 1 );
+	cv::imshow("temp", temp);
+	cv::waitKey(-1);
 
-	BOOST_CHECK(ok);
 
-}
-
-BOOST_AUTO_TEST_CASE( grafitti1and2 )
-{
-	HomographyTest usacalgo(4.0f);
-	bool ok = usacalgo.verify(prefix + "grafitti1and2.ref",
-			prefix + "grafitti1and2.img",
-			prefix + "grafitti1and2.res");
-
-	BOOST_CHECK(ok);
-
+	BOOST_CHECK(res.size() == pts.size());
+	for (size_t i = 0 ; i < res.size() ; ++i)
+	{
+		BOOST_CHECK(res[i] == 1);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

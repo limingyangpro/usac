@@ -1,5 +1,5 @@
-#ifndef HTOOLS_H
-#define HTOOLS_H
+#ifndef CTOOLS_H
+#define CTOOLS_H
 
 #include "MathFunctions.h"
 #include <Eigen/Dense>
